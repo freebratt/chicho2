@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,9 +36,9 @@ export default function SetupWorkerPage() {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("flow", "reset");
-      
+
       await signIn("password", formData);
-      
+
       setStatus("success");
       setMessage("Overovací kód bol odoslaný na váš email");
       setStep("verify");
@@ -70,9 +72,9 @@ export default function SetupWorkerPage() {
       formData.append("code", code);
       formData.append("password", password);
       formData.append("flow", "reset-verification");
-      
+
       await signIn("password", formData);
-      
+
       setStatus("success");
       setMessage("Heslo úspešne nastavené! Môžete sa prihlásiť.");
     } catch (error: any) {
@@ -90,7 +92,7 @@ export default function SetupWorkerPage() {
             {step === "request" ? "Nastavenie hesla" : "Overenie a nastavenie hesla"}
           </CardTitle>
           <CardDescription>
-            {step === "request" 
+            {step === "request"
               ? "Zadajte email, na ktorý vám admin vytvoril účet"
               : "Zadajte kód z emailu a zvoľte si heslo"}
           </CardDescription>
@@ -130,9 +132,9 @@ export default function SetupWorkerPage() {
                 </Alert>
               )}
 
-              <Button 
-                onClick={handleRequestCode} 
-                className="w-full" 
+              <Button
+                onClick={handleRequestCode}
+                className="w-full"
                 size="lg"
                 disabled={status === "loading"}
               >
@@ -198,21 +200,21 @@ export default function SetupWorkerPage() {
               )}
 
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={() => {
                     setStep("request");
                     setStatus("idle");
                     setCode("");
                     setPassword("");
-                  }} 
+                  }}
                   variant="outline"
                   className="flex-1"
                   disabled={status === "loading"}
                 >
                   Späť
                 </Button>
-                <Button 
-                  onClick={handleSetPassword} 
+                <Button
+                  onClick={handleSetPassword}
                   className="flex-1"
                   disabled={status === "loading"}
                 >

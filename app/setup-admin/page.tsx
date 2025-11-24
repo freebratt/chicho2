@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -30,12 +32,12 @@ export default function SetupAdminPage() {
     setMessage("Vytváram prvého admin používateľa...");
 
     try {
-      await createAdmin({ 
-        email, 
+      await createAdmin({
+        email,
         name,
-        setupToken 
+        setupToken
       });
-      
+
       setStatus("success");
       setMessage(`Admin účet úspešne vytvorený! Teraz sa môžete prihlásiť pomocou hesla.`);
     } catch (error: any) {
