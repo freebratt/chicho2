@@ -45,12 +45,12 @@ function simpleHash(password: string): string {
 }
 
 export default function AdminPage() {
-  // Convex queries
-  const navodiesData = useQuery(api.navody.getAllNavody);
-  const tagsData = useQuery(api.tags.getAllTags);
-  const usersData = useQuery(api.users.getAllUsers);
-  const feedbackData = useQuery(api.feedback.getAllFeedback);
-  const visitStatsData = useQuery(api.navody.getAllVisitsWithStats);
+  // Convex queries - conditionally executed only on client
+  const navodiesData = useQuery(typeof window !== 'undefined' ? api.navody.getAllNavody : "skip");
+  const tagsData = useQuery(typeof window !== 'undefined' ? api.tags.getAllTags : "skip");
+  const usersData = useQuery(typeof window !== 'undefined' ? api.users.getAllUsers : "skip");
+  const feedbackData = useQuery(typeof window !== 'undefined' ? api.feedback.getAllFeedback : "skip");
+  const visitStatsData = useQuery(typeof window !== 'undefined' ? api.navody.getAllVisitsWithStats : "skip");
 
   // Convex mutations for attachments
   const generateUploadUrl = useMutation(api.attachments.generateUploadUrl);
@@ -2619,11 +2619,11 @@ export default function AdminPage() {
                               .map((aktivita) => (
                                 <div key={aktivita.id} className="flex items-start space-x-3 p-3 bg-white border border-gray-200 rounded-lg">
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold ${aktivita.typ === 'prihlasenie' ? 'bg-green-500' :
-                                      aktivita.typ === 'navsteva-navodu' ? 'bg-blue-500' :
-                                        aktivita.typ === 'export-pdf' ? 'bg-purple-500' :
-                                          aktivita.typ === 'qr-generovanie' ? 'bg-orange-500' :
-                                            aktivita.typ === 'vytvorenie-pripomienky' ? 'bg-yellow-500' :
-                                              'bg-gray-500'
+                                    aktivita.typ === 'navsteva-navodu' ? 'bg-blue-500' :
+                                      aktivita.typ === 'export-pdf' ? 'bg-purple-500' :
+                                        aktivita.typ === 'qr-generovanie' ? 'bg-orange-500' :
+                                          aktivita.typ === 'vytvorenie-pripomienky' ? 'bg-yellow-500' :
+                                            'bg-gray-500'
                                     }`}>
                                     {aktivita.typ === 'prihlasenie' ? '🔐' :
                                       aktivita.typ === 'navsteva-navodu' ? '👁️' :
