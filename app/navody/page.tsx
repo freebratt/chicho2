@@ -1,6 +1,8 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ResponsiveLayout from '@/components/ResponsiveLayout';
@@ -18,7 +20,7 @@ function NavodyContent() {
   const searchParams = useSearchParams();
   const [navody, setNavody] = useState<VyrobnyNavod[]>([]);
   const { user } = useAuth();
-  
+
   // Initialize localStorage and load data
   useEffect(() => {
     initializeStorage();
@@ -64,7 +66,7 @@ function NavodyContent() {
 
     // Apply type filter
     if (filters.typPrace.length > 0) {
-      result = result.filter(navod => 
+      result = result.filter(navod =>
         filters.typPrace.some(typ => navod.typPrace.includes(typ))
       );
     }
@@ -73,13 +75,13 @@ function NavodyContent() {
     if (filters.produkt.length > 0) {
       // Special case: "ostatne" excludes the main categories
       if (filters.produkt.includes('ostatne')) {
-        result = result.filter(navod => 
-          !navod.produkt.includes('okno') && 
-          !navod.produkt.includes('dvere') && 
+        result = result.filter(navod =>
+          !navod.produkt.includes('okno') &&
+          !navod.produkt.includes('dvere') &&
           !navod.produkt.includes('HS portál')
         );
       } else {
-        result = result.filter(navod => 
+        result = result.filter(navod =>
           filters.produkt.some(produkt => navod.produkt.includes(produkt))
         );
       }
@@ -102,8 +104,8 @@ function NavodyContent() {
               </h1>
               {user?.uroven === 'admin' && (
                 <Link href="/admin#navody-section">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="text-chicho-red border-chicho-red hover:bg-chicho-red hover:text-white"
                   >
                     <Plus size={16} className="mr-2" />
@@ -113,8 +115,8 @@ function NavodyContent() {
               )}
             </div>
             <p className="text-gray-600 font-inter text-sm sm:text-base">
-              {filteredNavody.length} {filteredNavody.length === 1 ? 'návod' : 
-               filteredNavody.length < 5 ? 'návody' : 'návodov'}
+              {filteredNavody.length} {filteredNavody.length === 1 ? 'návod' :
+                filteredNavody.length < 5 ? 'návody' : 'návodov'}
               {filters.search && ` pre "${filters.search}"`}
               {filters.typPrace.length > 0 && ` • ${filters.typPrace.join(', ')}`}
               {filters.produkt.length > 0 && ` • ${filters.produkt.join(', ')}`}

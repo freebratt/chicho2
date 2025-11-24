@@ -26,6 +26,8 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, QrCode, Play, ExternalLink, MessageSquare, CheckCircle, AlertTriangle, Calendar, Edit3, Send, FileText } from 'lucide-react';
@@ -55,23 +57,23 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
   console.log('NavodDetail component loaded for slug:', resolvedParams.slug);
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [navody, setNavody] = useState<VyrobnyNavod[]>([]);
   const [tagy, setTagy] = useState<Tag[]>([]);
   const [navod, setNavod] = useState<VyrobnyNavod | null>(null);
-  
+
   // Fetch attachments from Convex if navod has attachments
   const attachments = useQuery(
     api.attachments.getAttachmentsByNavodId,
     navod?.id ? { navodId: navod.id } : "skip"
   );
-  
+
   // Debug attachments
   useEffect(() => {
     console.log('🔍 Attachments query result:', attachments);
     console.log('🔍 Navod ID for attachments query:', navod?.id);
   }, [attachments, navod?.id]);
-  
+
   // Feedback form state
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -83,17 +85,17 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
     initializeStorage();
     const loadedNavody = loadNavody();
     const loadedTagy = loadTagy();
-    
+
     setNavody(loadedNavody);
     setTagy(loadedTagy);
-    
+
     // Find the specific navod by slug
     const foundNavod = loadedNavody.find(n => n.slug === resolvedParams.slug);
     setNavod(foundNavod || null);
-    
+
     console.log('Loaded navody:', loadedNavody.length);
     console.log('Found navod:', foundNavod?.nazov || 'Not found');
-    
+
     // Record visit if navod found and user authenticated
     if (foundNavod && user) {
       recordNavodVisit(
@@ -151,48 +153,48 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
 
   const exportToPDF = async () => {
     console.log('Starting PDF export for:', navod.nazov);
-    
+
     let loadingAlert: HTMLElement | null = null;
-    
+
     try {
       // Show loading state
       loadingAlert = document.createElement('div');
       loadingAlert.innerHTML = '🔄 Generujem PDF...';
       loadingAlert.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc2626;color:white;padding:12px 20px;border-radius:8px;z-index:1000;font-family:Inter,sans-serif;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
       document.body.appendChild(loadingAlert);
-      
+
       // Small delay to ensure loading state is visible
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       console.log('Creating HTML content for PDF...');
-      
+
       // Get logo HTML - using the static logo
       const logoHtml = `<img src="https://assets.macaly-user-data.dev/cdn-cgi/image/format=webp,width=2000,height=2000,fit=scale-down,quality=90,anim=true/jbuldz11rm382jinidkd81ad/kj34r1pvqkohnjr9zf3y8i94/mK-FLn6hbjtwTjmeeCSYb/logo.png" alt="CHICHO Logo" style="width: 160px; height: 160px; object-fit: contain;">`;
-      
+
       // Generate QR code data URL for the current guide
       const qrCodeDataUrl = await generateQRCodeDataUrl(
         `${typeof window !== 'undefined' ? window.location.origin : ''}/navody/${navod.slug}`,
         200
       );
-      
+
       // Generate QR codes for attachments
       const attachmentQRCodes = attachments && attachments.length > 0
         ? await Promise.all(
-            attachments.map(async (att) => {
-              try {
-                return {
-                  filename: att.filename,
-                  url: att.url,
-                  qrDataUrl: await generateQRCodeDataUrl(att.url || '', 60)
-                };
-              } catch (error) {
-                console.error('Error generating QR for attachment:', att.filename, error);
-                return null;
-              }
-            })
-          ).then(results => results.filter(r => r !== null))
+          attachments.map(async (att) => {
+            try {
+              return {
+                filename: att.filename,
+                url: att.url,
+                qrDataUrl: await generateQRCodeDataUrl(att.url || '', 60)
+              };
+            } catch (error) {
+              console.error('Error generating QR for attachment:', att.filename, error);
+              return null;
+            }
+          })
+        ).then(results => results.filter(r => r !== null))
         : [];
-      
+
       // Create a hidden div with the content to be converted to PDF
       const pdfContent = document.createElement('div');
       pdfContent.style.cssText = `
@@ -237,20 +239,20 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
             ${navod.potrebneNaradie.length > 0 ? `
             <div style="margin-bottom: 20px;">
               <div style="color: #000; font-size: 14px; font-weight: bold; margin-bottom: 10px;">Potrebné náradie a materiál</div>
-              ${navod.potrebneNaradie.map(item => 
-                `<div style="margin-bottom: 4px; padding-left: 12px; font-size: 10px;">• ${item.popis}</div>`
-              ).join('')}
+              ${navod.potrebneNaradie.map(item =>
+        `<div style="margin-bottom: 4px; padding-left: 12px; font-size: 10px;">• ${item.popis}</div>`
+      ).join('')}
             </div>
             ` : ''}
 
             <div style="margin-bottom: 20px;">
               <div style="color: #000; font-size: 14px; font-weight: bold; margin-bottom: 10px;">Postup práce</div>
-              ${navod.postupPrace.map(krok => 
-                `<div style="margin-bottom: 8px; padding: 6px 0; border-bottom: 1px solid #ddd;">
+              ${navod.postupPrace.map(krok =>
+        `<div style="margin-bottom: 8px; padding: 6px 0; border-bottom: 1px solid #ddd;">
                   <span style="font-weight: bold; color: #000; font-size: 11px;">${krok.cislo}.</span> 
                   <span style="font-size: 10px;">${krok.popis}</span>
                 </div>`
-              ).join('')}
+      ).join('')}
             </div>
           </div>
 
@@ -259,18 +261,18 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
             ${navod.naCoSiDatPozor.length > 0 ? `
             <div style="margin-bottom: 20px;">
               <div style="color: #000; font-size: 14px; font-weight: bold; margin-bottom: 10px;">⚠️ Na čo si dať pozor</div>
-              ${navod.naCoSiDatPozor.map(item => 
-                `<div style="margin-bottom: 6px; padding-left: 12px; color: #000; font-size: 9px; border-left: 2px solid #000; padding-left: 8px;">• ${item.popis}</div>`
-              ).join('')}
+              ${navod.naCoSiDatPozor.map(item =>
+        `<div style="margin-bottom: 6px; padding-left: 12px; color: #000; font-size: 9px; border-left: 2px solid #000; padding-left: 8px;">• ${item.popis}</div>`
+      ).join('')}
             </div>
             ` : ''}
 
             ${navod.casteChyby.length > 0 ? `
             <div style="margin-bottom: 20px;">
               <div style="color: #000; font-size: 14px; font-weight: bold; margin-bottom: 10px;">❌ Časté chyby</div>
-              ${navod.casteChyby.map(item => 
-                `<div style="margin-bottom: 6px; padding-left: 12px; color: #000; font-size: 9px; border-left: 2px solid #000; padding-left: 8px;">• ${item.popis}</div>`
-              ).join('')}
+              ${navod.casteChyby.map(item =>
+        `<div style="margin-bottom: 6px; padding-left: 12px; color: #000; font-size: 9px; border-left: 2px solid #000; padding-left: 8px;">• ${item.popis}</div>`
+      ).join('')}
             </div>
             ` : ''}
           </div>
@@ -297,7 +299,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
       document.body.appendChild(pdfContent);
 
       console.log('Converting HTML to canvas...');
-      
+
       // Convert HTML to canvas with high quality
       const canvas = await html2canvas(pdfContent, {
         scale: 3,
@@ -309,7 +311,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
       });
 
       console.log('Creating PDF from canvas...');
-      
+
       // Create PDF and add the canvas as image
       const pdf = new jsPDF('p', 'mm', 'a4');
       const imgWidth = 210; // A4 width in mm
@@ -334,53 +336,53 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
       document.body.removeChild(pdfContent);
 
       console.log('Saving PDF file...');
-      
+
       // Generate filename
       const filename = `${navod.slug}-navod.pdf`;
-      
+
       // Force download
       pdf.save(filename);
-      
+
       console.log('PDF download triggered successfully:', filename);
-      
+
       // Record PDF export activity
       if (user) {
         recordUserActivity(user.id, 'export-pdf', `Export PDF: ${navod.nazov}`, navod.id);
       }
-      
+
       // Remove loading alert
       if (loadingAlert) {
         document.body.removeChild(loadingAlert);
         loadingAlert = null;
       }
-      
+
       // Show success message
       const successAlert = document.createElement('div');
       successAlert.innerHTML = `✅ PDF "${filename}" úspešne stiahnuté!`;
       successAlert.style.cssText = 'position:fixed;top:20px;right:20px;background:#16a34a;color:white;padding:12px 20px;border-radius:8px;z-index:1000;font-family:Inter,sans-serif;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:300px;';
       document.body.appendChild(successAlert);
-      
+
       // Auto-hide success message
       setTimeout(() => {
         if (document.body.contains(successAlert)) {
           document.body.removeChild(successAlert);
         }
       }, 4000);
-      
+
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      
+
       // Remove loading alert if still present
       if (loadingAlert && document.body.contains(loadingAlert)) {
         document.body.removeChild(loadingAlert);
       }
-      
+
       // Show detailed error message
       const errorAlert = document.createElement('div');
       errorAlert.innerHTML = `❌ Chyba pri exporte PDF!<br><small style="opacity:0.8;">Skúste to znovu alebo kontaktujte správcu.</small>`;
       errorAlert.style.cssText = 'position:fixed;top:20px;right:20px;background:#dc2626;color:white;padding:12px 20px;border-radius:8px;z-index:1000;font-family:Inter,sans-serif;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:300px;line-height:1.4;';
       document.body.appendChild(errorAlert);
-      
+
       // Auto-hide error message
       setTimeout(() => {
         if (document.body.contains(errorAlert)) {
@@ -429,7 +431,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
       if (savePripomienky(updatedPripomienky)) {
         showNotification('✅ Pripomienka bola úspešne odoslaná administrátorom!', 'success');
         console.log('Feedback saved successfully:', newPripomienka);
-        
+
         // Reset form
         setFeedbackMessage('');
         setFeedbackStep('general');
@@ -451,8 +453,8 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
         <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => router.push('/navody')}
               className="text-gray-600 hover:text-chicho-red h-8 px-2 self-start"
             >
@@ -462,7 +464,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
               {/* Admin Edit Button - Only visible for admins */}
               {user?.uroven === 'admin' && (
-                <Button 
+                <Button
                   onClick={() => router.push(`/admin?editNavod=${navod.id}`)}
                   className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 text-sm w-full sm:w-auto"
                   title="Upraviť návod (Admin)"
@@ -471,9 +473,9 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                   Upraviť
                 </Button>
               )}
-              
+
               <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <Button 
+                <Button
                   onClick={exportToPDF}
                   className="bg-chicho-red hover:bg-red-700 text-white h-8 px-3 text-sm flex-1 sm:flex-none"
                 >
@@ -492,7 +494,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                       <DialogTitle className="font-russo text-chicho-red">QR kód pre návod</DialogTitle>
                     </DialogHeader>
                     <div className="flex items-center justify-center py-6">
-                      <QRCodeGenerator 
+                      <QRCodeGenerator
                         url={`${typeof window !== 'undefined' ? window.location.origin : ''}/navody/${navod.slug}`}
                         size={200}
                         navodId={navod.id}
@@ -504,12 +506,12 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                     </p>
                   </DialogContent>
                 </Dialog>
-                
+
                 {/* Príloha download button - shown if attachment exists */}
                 {attachments && attachments.length > 0 && (
                   <div className="flex items-center space-x-1">
                     {attachments.map((attachment) => (
-                      <Button 
+                      <Button
                         key={attachment._id}
                         onClick={() => {
                           if (attachment.url) {
@@ -532,7 +534,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                     ))}
                   </div>
                 )}
-                
+
                 {/* Pripomienka na úpravu - Show only for workers */}
                 {user && user.uroven !== 'admin' && (
                   <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
@@ -558,7 +560,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                             <strong>Od:</strong> {user.meno}
                           </p>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="feedback-step-header" className="font-inter font-semibold">
                             Týka sa konkrétneho kroku? (voliteľné)
@@ -578,7 +580,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="feedback-message-header" className="font-inter font-semibold">
                             Vaša pripomienka *
@@ -596,16 +598,16 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                             Pripomienka bude odoslaná administrátorom na preskúmanie
                           </p>
                         </div>
-                        
+
                         <div className="flex items-center justify-end space-x-3 pt-4">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             onClick={() => setIsFeedbackOpen(false)}
                             disabled={isSubmittingFeedback}
                           >
                             Zrušiť
                           </Button>
-                          <Button 
+                          <Button
                             onClick={handleFeedbackSubmit}
                             className="bg-chicho-red hover:bg-red-700 text-white"
                             disabled={!feedbackMessage.trim() || isSubmittingFeedback}
@@ -627,19 +629,19 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
               </div>
             </div>
           </div>
-          
+
           <h1 className="font-orbitron text-xl sm:text-2xl font-bold text-chicho-dark mb-2" data-macaly="navod-title">
             {navod.nazov}
           </h1>
-          
+
           <div className="flex items-center text-xs text-gray-600 mb-3">
             <Calendar size={14} className="mr-1" />
             Aktualizované: {formatDate(navod.aktualizovane)}
           </div>
-          
+
           <div className="flex flex-wrap gap-2 mb-4">
             {navod.typPrace.map((typ) => (
-              <Badge 
+              <Badge
                 key={typ}
                 variant="outline"
                 className="cursor-pointer hover:scale-105 transition-transform font-inter text-chicho-dark border-chicho-red hover:bg-chicho-red hover:text-white text-xs px-2 py-1"
@@ -649,7 +651,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
               </Badge>
             ))}
             {navod.produkt.map((produkt) => (
-              <Badge 
+              <Badge
                 key={produkt}
                 variant="outline"
                 className="cursor-pointer hover:scale-105 transition-transform font-inter text-chicho-dark border-chicho-red hover:bg-chicho-red hover:text-white text-xs px-2 py-1"
@@ -764,7 +766,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                     <CardTitle className="font-russo text-chicho-red text-base">Rýchle akcie</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-2">
-                    <Button 
+                    <Button
                       onClick={exportToPDF}
                       className="w-full bg-chicho-red hover:bg-red-700 text-white h-8 text-sm"
                     >
@@ -783,7 +785,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                           <DialogTitle className="font-russo text-chicho-red">QR kód pre návod</DialogTitle>
                         </DialogHeader>
                         <div className="flex items-center justify-center py-6">
-                          <QRCodeGenerator 
+                          <QRCodeGenerator
                             url={`${typeof window !== 'undefined' ? window.location.origin : ''}/navody/${navod.slug}`}
                             size={200}
                             navodId={navod.id}
@@ -795,13 +797,13 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                         </p>
                       </DialogContent>
                     </Dialog>
-                    
+
                     {/* Príloha download buttons */}
                     {attachments && attachments.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-xs text-gray-600 font-inter font-semibold">Prílohy ({attachments.length})</p>
                         {attachments.map((attachment) => (
-                          <Button 
+                          <Button
                             key={attachment._id}
                             onClick={() => {
                               if (attachment.url) {
@@ -823,7 +825,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                         ))}
                       </div>
                     )}
-                    
+
                     {/* Pripomienka na úpravu - Show only for workers */}
                     {user && user.uroven !== 'admin' && (
                       <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
@@ -848,7 +850,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                                 <strong>Od:</strong> {user.meno}
                               </p>
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="feedback-step" className="font-inter font-semibold">
                                 Týka sa konkrétneho kroku? (voliteľné)
@@ -868,7 +870,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                                 </SelectContent>
                               </Select>
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="feedback-message" className="font-inter font-semibold">
                                 Vaša pripomienka *
@@ -886,16 +888,16 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                                 Pripomienka bude odoslaná administrátorom na preskúmanie
                               </p>
                             </div>
-                            
+
                             <div className="flex items-center justify-end space-x-3 pt-4">
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 onClick={() => setIsFeedbackOpen(false)}
                                 disabled={isSubmittingFeedback}
                               >
                                 Zrušiť
                               </Button>
-                              <Button 
+                              <Button
                                 onClick={handleFeedbackSubmit}
                                 className="bg-chicho-red hover:bg-red-700 text-white"
                                 disabled={!feedbackMessage.trim() || isSubmittingFeedback}
@@ -921,7 +923,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
 
             {/* Export buttons */}
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Button 
+              <Button
                 onClick={exportToPDF}
                 className="flex-1 bg-chicho-red hover:bg-red-700 text-white"
               >
@@ -930,7 +932,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="flex-1 border-chicho-red text-chicho-red hover:bg-chicho-red hover:text-white"
                   >
@@ -943,7 +945,7 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                     <DialogTitle className="font-russo text-chicho-red">QR kód pre návod</DialogTitle>
                   </DialogHeader>
                   <div className="flex items-center justify-center py-6">
-                    <QRCodeGenerator 
+                    <QRCodeGenerator
                       url={`${typeof window !== 'undefined' ? window.location.origin : ''}/navody/${navod.slug}`}
                       size={256}
                     />
@@ -961,8 +963,8 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                 <h2 className="font-russo text-lg text-chicho-red mb-3 lg:mb-4 flex items-center">
                   Fotky k návodu
                 </h2>
-                <ImageGallery 
-                  images={navod.obrazky} 
+                <ImageGallery
+                  images={navod.obrazky}
                   navodNazov={navod.nazov}
                 />
               </div>
@@ -978,9 +980,9 @@ export default function NavodDetail({ params }: { params: Promise<{ slug: string
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <a 
-                    href={navod.videoUrl} 
-                    target="_blank" 
+                  <a
+                    href={navod.videoUrl}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-blue-600 hover:underline font-inter"
                   >

@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { ArrowLeft, BookOpen, Users, Clock, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,8 +38,8 @@ function SkolenieCard({ skolenie }: SkolenieCardProps) {
   const isCompleted = mockProgress === 100;
 
   return (
-    <div 
-      className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200" 
+    <div
+      className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
       data-macaly={`skolenie-card-${skolenie.id}`}
     >
       <div className="p-6">
@@ -49,9 +51,9 @@ function SkolenieCard({ skolenie }: SkolenieCardProps) {
             </h3>
             <div className="flex flex-wrap gap-2 mb-3">
               {skolenie.pozicia.map((poz) => (
-                <Badge 
+                <Badge
                   key={poz}
-                  variant="outline" 
+                  variant="outline"
                   className="border-blue-300 text-blue-700 bg-blue-50"
                 >
                   {poz}
@@ -59,7 +61,7 @@ function SkolenieCard({ skolenie }: SkolenieCardProps) {
               ))}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {isCompleted && (
               <div className="flex items-center space-x-1 text-green-600">
@@ -106,14 +108,14 @@ function SkolenieCard({ skolenie }: SkolenieCardProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <Button 
+          <Button
             className="bg-chicho-red hover:bg-red-700 text-white font-inter"
             size="sm"
           >
             <BookOpen size={16} className="mr-2" />
             {isCompleted ? 'Zopakovať' : 'Pokračovať'}
           </Button>
-          
+
           {skolenie.test && (
             <Button variant="outline" size="sm">
               Spustiť test
@@ -127,7 +129,7 @@ function SkolenieCard({ skolenie }: SkolenieCardProps) {
 
 export default function SkoleniaPage() {
   console.log('SkoleniaPage rendered');
-  
+
   const [filters, setFilters] = useState<FilterState>({
     typPrace: [],
     produkt: [],
@@ -141,10 +143,10 @@ export default function SkoleniaPage() {
 
   // Filter školenia based on search
   const filteredSkolenia = skolenia.filter(skolenie => {
-    const matchesSearch = !filters.search || 
+    const matchesSearch = !filters.search ||
       skolenie.nazov.toLowerCase().includes(filters.search.toLowerCase()) ||
       skolenie.material.toLowerCase().includes(filters.search.toLowerCase());
-    
+
     return matchesSearch;
   });
 
@@ -159,13 +161,13 @@ export default function SkoleniaPage() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar onFilterChange={handleFilterChange} currentFilters={filters} />
-      
+
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
           {/* Header */}
           <div className="mb-8" data-macaly="skolenia-header">
             {/* Hero Section */}
-            <div 
+            <div
               className="relative rounded-2xl overflow-hidden mb-6 p-8 text-white"
               style={{
                 backgroundImage: 'linear-gradient(rgba(194, 0, 0, 0.85), rgba(194, 0, 0, 0.7)), url("https://images.pexels.com/photos/3862627/pexels-photo-3862627.jpeg?auto=compress&cs=tinysrgb&h=650&w=940")',
@@ -191,7 +193,7 @@ export default function SkoleniaPage() {
               </div>
               <p className="text-2xl font-bold text-chicho-dark">{stats.total}</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">Dokončené</h3>
@@ -199,7 +201,7 @@ export default function SkoleniaPage() {
               </div>
               <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">Prebieha</h3>
@@ -207,7 +209,7 @@ export default function SkoleniaPage() {
               </div>
               <p className="text-2xl font-bold text-yellow-600">{stats.inProgress}</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">Nezačaté</h3>
@@ -248,13 +250,13 @@ export default function SkoleniaPage() {
           {/* Pozície Overview */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="font-russo text-xl text-chicho-red mb-6">Pozície a ich školenia</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {pozicie.map((pozicia) => (
                 <div key={pozicia.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-russo text-lg text-chicho-dark mb-2">{pozicia.nazov}</h4>
                   <p className="text-gray-600 font-inter text-sm mb-4">{pozicia.popis}</p>
-                  
+
                   <div className="mb-3">
                     <p className="text-sm font-semibold text-gray-700 mb-2">Potrebné školenia:</p>
                     <div className="flex flex-wrap gap-2">
@@ -268,7 +270,7 @@ export default function SkoleniaPage() {
                       })}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">8 zamestnancov</span>
                     <Button variant="outline" size="sm">

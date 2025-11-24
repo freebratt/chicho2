@@ -1,8 +1,10 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
-import { 
-  Plus, BookOpen, Users, Settings, AlertTriangle, Edit3, Trash2, Eye, 
+import {
+  Plus, BookOpen, Users, Settings, AlertTriangle, Edit3, Trash2, Eye,
   Upload, X, Hash, Filter, MessageSquare, CheckCircle, ChevronDown, Activity, Clock, User, Image, FileText, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +21,7 @@ import AuthDebug from '@/components/AuthDebug';
 import LogoUpload from '@/components/LogoUpload';
 import { useFeedbackNotifications } from '@/hooks/use-feedback-notifications';
 import Link from 'next/link';
-import { 
+import {
   generateId,
   generateSlug,
   showNotification
@@ -142,20 +144,20 @@ export default function AdminPage() {
       })));
     }
   }, [feedbackData]);
-  
+
   // Update visit stats when Convex data changes
   useEffect(() => {
     if (visitStatsData) {
       setVisitStats(visitStatsData);
     }
   }, [visitStatsData]);
-  
+
   // Check for URL parameters to auto-open edit dialog
   useEffect(() => {
     if (typeof window !== 'undefined' && currentNavody.length > 0) {
       const urlParams = new URLSearchParams(window.location.search);
       const editNavodId = urlParams.get('editNavod');
-      
+
       if (editNavodId) {
         const navodToEdit = currentNavody.find(n => n.id === editNavodId);
         if (navodToEdit) {
@@ -172,13 +174,13 @@ export default function AdminPage() {
   const [showEditNavodDialog, setShowEditNavodDialog] = useState(false);
   const [showNewTagDialog, setShowNewTagDialog] = useState(false);
   const [editingNavod, setEditingNavod] = useState<VyrobnyNavod | null>(null);
-  
+
   // Query to fetch attachments for the currently editing navod
   const editingNavodAttachments = useQuery(
     api.attachments.getAttachmentsByNavodId,
     editingNavod?.id ? { navodId: editingNavod.id } : "skip"
   );
-  
+
   // Load attachments from Convex when editing a navod
   useEffect(() => {
     if (editingNavod && editingNavodAttachments) {
@@ -191,7 +193,7 @@ export default function AdminPage() {
       console.log('✅ Loaded attachments:', attachmentsForState.length);
     }
   }, [editingNavod, editingNavodAttachments]);
-  
+
   const [newNavodData, setNewNavodData] = useState({
     nazov: '',
     typPrace: [] as string[],
@@ -286,12 +288,12 @@ export default function AdminPage() {
 
   const handleCreateNavod = async () => {
     console.log('Creating nový návod:', newNavodData, 'Images:', uploadedImages);
-    
+
     if (!newNavodData.nazov.trim()) {
       showNotification('❌ Názov návodu je povinný!', 'error');
       return;
     }
-    
+
     if (newNavodData.postupPrace.length === 0) {
       showNotification('❌ Pridajte aspoň jeden krok postupu!', 'error');
       return;
@@ -299,7 +301,7 @@ export default function AdminPage() {
 
     try {
       const slug = generateSlug(newNavodData.nazov);
-      
+
       // Create navod in Convex
       const navodId = await createNavodMutation({
         nazov: newNavodData.nazov,
@@ -341,7 +343,7 @@ export default function AdminPage() {
       setUploadedImages([]);
       setCurrentAttachments([]);
       setShowNewNavodDialog(false);
-      
+
       showNotification(`✅ Návod "${newNavodData.nazov}" bol úspešne vytvorený!`, 'success');
       console.log('New návod created successfully:', navodId);
     } catch (error) {
@@ -365,7 +367,7 @@ export default function AdminPage() {
     });
     // Load existing images if they exist
     setUploadedImages(navod.obrazky || []);
-    
+
     // Load existing attachments from Convex database
     console.log('🔍 Loading attachments from Convex for navod:', navod.id);
     try {
@@ -376,20 +378,20 @@ export default function AdminPage() {
       console.error('❌ Error loading attachments:', error);
       setCurrentAttachments([]);
     }
-    
+
     setShowEditNavodDialog(true);
   };
 
   const handleSaveEditNavod = async () => {
     console.log('Saving edited návod:', editingNavod?.id, newNavodData);
-    
+
     if (!editingNavod) return;
-    
+
     if (!newNavodData.nazov.trim()) {
       showNotification('❌ Názov návodu je povinný!', 'error');
       return;
     }
-    
+
     if (newNavodData.postupPrace.length === 0) {
       showNotification('❌ Pridajte aspoň jeden krok postupu!', 'error');
       return;
@@ -397,7 +399,7 @@ export default function AdminPage() {
 
     try {
       const slug = generateSlug(newNavodData.nazov);
-      
+
       // Update navod in Convex
       await updateNavodMutation({
         navodId: editingNavod.id as Id<'navody'>,
@@ -412,7 +414,7 @@ export default function AdminPage() {
         obrazky: uploadedImages.map(o => ({ url: o.url, cisloKroku: o.cisloKroku, popis: o.popis })),
         videoUrl: newNavodData.videoUrl || undefined,
       });
-      
+
       // Delete all old attachments from Convex
       console.log('🗑️ Deleting all old attachments for navod:', editingNavod.id);
       try {
@@ -421,7 +423,7 @@ export default function AdminPage() {
       } catch (error) {
         console.error('❌ Error deleting old attachments:', error);
       }
-      
+
       // Save all current attachments
       if (currentAttachments.length > 0) {
         console.log('💾 Saving', currentAttachments.length, 'new attachments');
@@ -456,13 +458,13 @@ export default function AdminPage() {
         videoUrl: ''
       });
       setUploadedImages([]);
-      
+
       const imageCount = uploadedImages.length;
       let message = `✅ Návod "${newNavodData.nazov}" bol úspešne upravený!`;
       if (imageCount > 0) {
         message += ` (Uložených ${imageCount} obrázkov)`;
       }
-      
+
       showNotification(message, 'success');
       console.log('Návod updated successfully');
     } catch (error) {
@@ -473,14 +475,14 @@ export default function AdminPage() {
 
   const handleDeleteNavod = async (navod: VyrobnyNavod) => {
     console.log('🗑️ Delete navod button clicked for:', navod.nazov, navod.id);
-    
+
     if (!confirm(`Naozaj chcete odstrániť návod "${navod.nazov}"?\n\nTáto akcia je nevratná!`)) {
       console.log('❌ User cancelled deletion');
       return;
     }
-    
+
     console.log('✅ User confirmed deletion, proceeding...');
-    
+
     try {
       await deleteNavodMutation({ navodId: navod.id as Id<'navody'> });
       console.log('✅ Návod deleted successfully:', navod.id);
@@ -493,7 +495,7 @@ export default function AdminPage() {
 
   const handleCreateTag = async () => {
     console.log('Creating new tag:', newTagData);
-    
+
     if (!newTagData.nazov.trim()) {
       showNotification('❌ Názov tagu je povinný!', 'error');
       return;
@@ -504,18 +506,18 @@ export default function AdminPage() {
       showNotification('❌ Tag s týmto názvom už existuje!', 'error');
       return;
     }
-    
+
     try {
       await createTagMutation({
         nazov: newTagData.nazov,
         typ: newTagData.typ,
         farba: newTagData.farba
       });
-      
+
       // Reset form
       setNewTagData({ nazov: '', typ: 'typ-prace', farba: '#3B82F6' });
       setShowNewTagDialog(false);
-      
+
       showNotification(`✅ Tag "${newTagData.nazov}" bol úspešne vytvorený!`, 'success');
       console.log('New tag created successfully');
     } catch (error) {
@@ -526,7 +528,7 @@ export default function AdminPage() {
 
   const handleCreateUser = async () => {
     console.log('Creating user:', newUserData);
-    
+
     if (!newUserData.meno.trim() || !newUserData.email.trim() || !newUserData.heslo.trim()) {
       showNotification('❌ Všetky polia sú povinné!', 'error');
       return;
@@ -537,7 +539,7 @@ export default function AdminPage() {
       showNotification('❌ Používateľ s týmto emailom už existuje!', 'error');
       return;
     }
-    
+
     try {
       await createUserMutation({
         meno: newUserData.meno,
@@ -545,7 +547,7 @@ export default function AdminPage() {
         hesloHash: hashPassword(newUserData.heslo),
         uroven: newUserData.uroven,
       });
-      
+
       // Reset form
       setNewUserData({
         meno: '',
@@ -554,7 +556,7 @@ export default function AdminPage() {
         uroven: 'pracovnik'
       });
       setShowNewUserDialog(false);
-      
+
       showNotification(`✅ Používateľ "${newUserData.meno}" bol úspešne vytvorený!`, 'success');
       console.log('New user created successfully');
     } catch (error) {
@@ -577,9 +579,9 @@ export default function AdminPage() {
 
   const handleSaveEditUser = async () => {
     console.log('Saving edited user:', editingUser?.id, newUserData);
-    
+
     if (!editingUser) return;
-    
+
     if (!newUserData.meno.trim() || !newUserData.email.trim()) {
       showNotification('❌ Meno a email sú povinné!', 'error');
       return;
@@ -590,7 +592,7 @@ export default function AdminPage() {
       showNotification('❌ Email už používa iný používateľ!', 'error');
       return;
     }
-    
+
     try {
       await updateUserMutation({
         userId: editingUser.id as Id<'users'>,
@@ -599,7 +601,7 @@ export default function AdminPage() {
         uroven: newUserData.uroven,
         hesloHash: newUserData.heslo.trim() ? hashPassword(newUserData.heslo) : undefined,
       });
-      
+
       // Reset form
       setShowEditUserDialog(false);
       setEditingUser(null);
@@ -609,7 +611,7 @@ export default function AdminPage() {
         heslo: '',
         uroven: 'pracovnik'
       });
-      
+
       showNotification(`✅ Používateľ "${newUserData.meno}" bol úspešne upravený!`, 'success');
       console.log('User updated successfully');
     } catch (error) {
@@ -623,13 +625,13 @@ export default function AdminPage() {
       showNotification('❌ Nemôžete odstrániť administrátora!', 'error');
       return;
     }
-    
+
     if (!confirm(`Naozaj chcete odstrániť používateľa "${uzivatel.meno}"?\n\nTáto akcia je nevratná!`)) {
       return;
     }
-    
+
     console.log('Deleting user:', uzivatel.id);
-    
+
     try {
       await deleteUserMutation({ userId: uzivatel.id as Id<'users'> });
       showNotification(`✅ Používateľ "${uzivatel.meno}" bol úspešne odstránený!`, 'success');
@@ -648,7 +650,7 @@ export default function AdminPage() {
 
   const handleMarkFeedbackDone = async (pripomienkaId: string) => {
     console.log('Marking feedback as done:', pripomienkaId);
-    
+
     try {
       await resolveFeedbackMutation({ feedbackId: pripomienkaId as Id<'pripomienky'> });
       showNotification('✅ Pripomienka označená ako vybavená!', 'success');
@@ -661,7 +663,7 @@ export default function AdminPage() {
 
   const handleTogglePripomienka = async (pripomienka: Pripomienka) => {
     console.log('Toggling pripomienka status:', pripomienka.id);
-    
+
     try {
       if (pripomienka.stav === 'nevybavena') {
         await resolveFeedbackMutation({ feedbackId: pripomienka.id as Id<'pripomienky'> });
@@ -717,7 +719,7 @@ export default function AdminPage() {
   const handleUpdateImageStep = (imageId: string, cisloKroku: number) => {
     console.log('Updating image step:', imageId, 'to step:', cisloKroku);
     setUploadedImages(prev => {
-      const updated = prev.map(img => 
+      const updated = prev.map(img =>
         img.id === imageId ? { ...img, cisloKroku } : img
       );
       console.log('Updated uploadedImages:', updated);
@@ -728,7 +730,7 @@ export default function AdminPage() {
   const handleUpdateImageDescription = (imageId: string, popis: string) => {
     console.log('Updating image description:', imageId, 'to:', popis);
     setUploadedImages(prev => {
-      const updated = prev.map(img => 
+      const updated = prev.map(img =>
         img.id === imageId ? { ...img, popis } : img
       );
       console.log('Updated uploadedImages descriptions:', updated);
@@ -743,14 +745,14 @@ export default function AdminPage() {
 
     try {
       setUploadingAttachment(true);
-      
+
       // Upload each file
       const uploadedFiles: Array<{ id: string; filename: string }> = [];
-      
+
       for (const file of Array.from(files)) {
         // Step 1: Get upload URL from Convex
         const uploadUrl = await generateUploadUrl();
-        
+
         // Step 2: Upload file to Convex storage using POST
         const uploadResponse = await fetch(uploadUrl, {
           method: "POST",
@@ -759,30 +761,30 @@ export default function AdminPage() {
           },
           body: file,
         });
-        
+
         if (!uploadResponse.ok) {
           throw new Error(`Upload failed: ${uploadResponse.statusText}`);
         }
-        
+
         // Step 3: Get the storage ID from response
         const { storageId } = await uploadResponse.json();
-        
+
         if (!storageId) {
           throw new Error("No storage ID returned from upload");
         }
-        
+
         uploadedFiles.push({
           id: storageId,
           filename: file.name
         });
       }
-      
+
       // Step 4: Add to current attachments
       setCurrentAttachments(prev => [...prev, ...uploadedFiles]);
-      
+
       showNotification(`✅ ${uploadedFiles.length} príloha/prílohy boli nahrané!`, 'success');
       console.log('Attachments uploaded successfully:', uploadedFiles);
-      
+
     } catch (error) {
       console.error('Upload error:', error);
       showNotification('❌ Chyba pri nahrávaní príloh!', 'error');
@@ -810,9 +812,9 @@ export default function AdminPage() {
       cislo: nextNumber,
       popis: ''
     };
-    setNewNavodData(prev => ({ 
-      ...prev, 
-      postupPrace: [...prev.postupPrace, newStep] 
+    setNewNavodData(prev => ({
+      ...prev,
+      postupPrace: [...prev.postupPrace, newStep]
     }));
   };
 
@@ -823,17 +825,17 @@ export default function AdminPage() {
         ...krok,
         cislo: index + 1
       }));
-    
-    setNewNavodData(prev => ({ 
-      ...prev, 
-      postupPrace: updatedSteps 
+
+    setNewNavodData(prev => ({
+      ...prev,
+      postupPrace: updatedSteps
     }));
   };
 
   const handleUpdateStepDescription = (stepId: string, popis: string) => {
     setNewNavodData(prev => ({
       ...prev,
-      postupPrace: prev.postupPrace.map(krok => 
+      postupPrace: prev.postupPrace.map(krok =>
         krok.id === stepId ? { ...krok, popis } : krok
       )
     }));
@@ -854,7 +856,7 @@ export default function AdminPage() {
   const handleUpdateListItem = (section: 'potrebneNaradie' | 'naCoSiDatPozor' | 'casteChyby', itemId: string, popis: string) => {
     setNewNavodData(prev => ({
       ...prev,
-      [section]: prev[section].map(item => 
+      [section]: prev[section].map(item =>
         item.id === itemId ? { ...item, popis } : item
       )
     }));
@@ -875,15 +877,15 @@ export default function AdminPage() {
 
   const handleConfirmDeleteTag = async () => {
     if (!tagToDelete) return;
-    
+
     console.log('Attempting to delete tag:', tagToDelete.nazov, tagToDelete.id);
-    
+
     // Count how many guides use this tag
-    const affectedGuides = (currentNavody || []).filter(navod => 
+    const affectedGuides = (currentNavody || []).filter(navod =>
       (tagToDelete.typ === 'typ-prace' && navod.typPrace.includes(tagToDelete.nazov)) ||
       (tagToDelete.typ === 'produkt' && navod.produkt.includes(tagToDelete.nazov))
     );
-    
+
     const confirmMessage = `⚠️ POZOR: Odstraňovanie tagu\n\n` +
       `Tag: "${tagToDelete.nazov}" (${tagToDelete.typ === 'typ-prace' ? 'Typ práce' : 'Produkt'})\n` +
       `Ovplyvnené návody: ${affectedGuides.length}\n` +
@@ -891,22 +893,22 @@ export default function AdminPage() {
       `Tag bude odstránený zo VŠETKÝCH návodov!\n` +
       `Táto akcia je NEVRATNÁ!\n\n` +
       `Naozaj chcete pokračovať?`;
-    
+
     if (!confirm(confirmMessage)) {
       console.log('❌ User cancelled tag deletion');
       setShowDeleteTagDialog(false);
       setTagToDelete(null);
       return;
     }
-    
+
     console.log('✅ User confirmed tag deletion, proceeding...');
-    
+
     try {
       await deleteTagMutation({ tagId: tagToDelete.id as Id<'tags'> });
-      
+
       setShowDeleteTagDialog(false);
       setTagToDelete(null);
-      
+
       showNotification(`✅ Tag "${tagToDelete.nazov}" bol odstránený zo všetkých návodov!`, 'success');
       console.log('✅ Tag deleted successfully:', tagToDelete.nazov);
     } catch (error: any) {
@@ -946,7 +948,7 @@ export default function AdminPage() {
 
           {/* Statistics Dashboard */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 mb-6">
-            <div 
+            <div
               className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => scrollToSection('navody-section')}
             >
@@ -957,7 +959,7 @@ export default function AdminPage() {
               <p className="text-xl lg:text-2xl font-bold text-chicho-dark">{stats.navody}</p>
               <p className="text-xs text-gray-500 mt-1">Výrobné návody</p>
             </div>
-            
+
             <div className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">Školenia</h3>
@@ -966,7 +968,7 @@ export default function AdminPage() {
               <p className="text-2xl font-bold text-blue-600">{stats.skolenia}</p>
               <p className="text-xs text-gray-500 mt-1">Aktívne kurzy</p>
             </div>
-            
+
             <div className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">pozície</h3>
@@ -975,7 +977,7 @@ export default function AdminPage() {
               <p className="text-2xl font-bold text-green-600">{stats.pozicie}</p>
               <p className="text-xs text-gray-500 mt-1">Pracovné pozície</p>
             </div>
-            
+
             <div className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-russo text-sm text-gray-600">Chyby</h3>
@@ -985,7 +987,7 @@ export default function AdminPage() {
               <p className="text-xs text-gray-500 mt-1">Evidované problémy</p>
             </div>
 
-            <div 
+            <div
               className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => scrollToSection('uzivatelia-section')}
             >
@@ -997,7 +999,7 @@ export default function AdminPage() {
               <p className="text-xs text-gray-500 mt-1">Registrovaní</p>
             </div>
 
-            <div 
+            <div
               className="bg-white p-4 lg:p-6 rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => scrollToSection('pripomienky-section')}
             >
@@ -1021,8 +1023,8 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <Dialog open={showNewNavodDialog} onOpenChange={setShowNewNavodDialog}>
                       <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           className="text-chicho-red border-chicho-red hover:bg-chicho-red hover:text-white"
                         >
@@ -1047,7 +1049,7 @@ export default function AdminPage() {
                                 className="mt-1"
                               />
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <Label className="font-inter font-semibold">Typ práce</Label>
@@ -1081,7 +1083,7 @@ export default function AdminPage() {
                                     ))}
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <Label className="font-inter font-semibold">Produkt</Label>
                                 <div className="mt-2 space-y-2">
@@ -1129,9 +1131,9 @@ export default function AdminPage() {
                                   onClick={() => toggleSection('kroky')}
                                   className="text-gray-500 hover:text-gray-700"
                                 >
-                                  <ChevronDown 
-                                    size={16} 
-                                    className={`transform transition-transform ${collapsedSections.kroky ? 'rotate-180' : ''}`} 
+                                  <ChevronDown
+                                    size={16}
+                                    className={`transform transition-transform ${collapsedSections.kroky ? 'rotate-180' : ''}`}
                                   />
                                 </Button>
                               </div>
@@ -1156,7 +1158,7 @@ export default function AdminPage() {
                                 </Button>
                               </div>
                             </div>
-                            
+
                             {!collapsedSections.kroky && (
                               <div className="space-y-3">
                                 {newNavodData.postupPrace.map((krok, index) => (
@@ -1204,9 +1206,9 @@ export default function AdminPage() {
                                   onClick={() => toggleSection('naradie')}
                                   className="text-gray-500 hover:text-gray-700"
                                 >
-                                  <ChevronDown 
-                                    size={16} 
-                                    className={`transform transition-transform ${collapsedSections.naradie ? 'rotate-180' : ''}`} 
+                                  <ChevronDown
+                                    size={16}
+                                    className={`transform transition-transform ${collapsedSections.naradie ? 'rotate-180' : ''}`}
                                   />
                                 </Button>
                               </div>
@@ -1220,7 +1222,7 @@ export default function AdminPage() {
                                 Pridať náradie
                               </Button>
                             </div>
-                            
+
                             {!collapsedSections.naradie && (
                               <div className="space-y-2">
                                 {newNavodData.potrebneNaradie.map((item) => (
@@ -1258,9 +1260,9 @@ export default function AdminPage() {
                                   onClick={() => toggleSection('pozor')}
                                   className="text-gray-500 hover:text-gray-700"
                                 >
-                                  <ChevronDown 
-                                    size={16} 
-                                    className={`transform transition-transform ${collapsedSections.pozor ? 'rotate-180' : ''}`} 
+                                  <ChevronDown
+                                    size={16}
+                                    className={`transform transition-transform ${collapsedSections.pozor ? 'rotate-180' : ''}`}
                                   />
                                 </Button>
                               </div>
@@ -1274,7 +1276,7 @@ export default function AdminPage() {
                                 Pridať upozornenie
                               </Button>
                             </div>
-                            
+
                             {!collapsedSections.pozor && (
                               <div className="space-y-2">
                                 {newNavodData.naCoSiDatPozor.map((item) => (
@@ -1312,9 +1314,9 @@ export default function AdminPage() {
                                   onClick={() => toggleSection('chyby')}
                                   className="text-gray-500 hover:text-gray-700"
                                 >
-                                  <ChevronDown 
-                                    size={16} 
-                                    className={`transform transition-transform ${collapsedSections.chyby ? 'rotate-180' : ''}`} 
+                                  <ChevronDown
+                                    size={16}
+                                    className={`transform transition-transform ${collapsedSections.chyby ? 'rotate-180' : ''}`}
                                   />
                                 </Button>
                               </div>
@@ -1328,7 +1330,7 @@ export default function AdminPage() {
                                 Pridať chybu
                               </Button>
                             </div>
-                            
+
                             {!collapsedSections.chyby && (
                               <div className="space-y-2">
                                 {newNavodData.casteChyby.map((item) => (
@@ -1357,7 +1359,7 @@ export default function AdminPage() {
                           {/* Images Section */}
                           <div className="border-t pt-6">
                             <h3 className="font-russo text-lg text-chicho-dark mb-4">Obrázky</h3>
-                            
+
                             <div className="mb-4">
                               <Label htmlFor="image-upload" className="font-inter font-semibold">Nahrať obrázky</Label>
                               <Input
@@ -1369,7 +1371,7 @@ export default function AdminPage() {
                                 className="mt-1"
                               />
                             </div>
-                            
+
                             {uploadedImages.length > 0 && (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {uploadedImages.map((image) => (
@@ -1390,7 +1392,7 @@ export default function AdminPage() {
                                         }}
                                       />
                                     </div>
-                                    
+
                                     {/* Enhanced text area with guaranteed visibility */}
                                     <div className="space-y-2 bg-gray-50 rounded-lg p-3">
                                       <Input
@@ -1426,7 +1428,7 @@ export default function AdminPage() {
                                           <Trash2 size={16} />
                                         </Button>
                                       </div>
-                                      
+
                                       {/* Text visibility guarantee indicator */}
                                       <div className="text-xs text-green-600 flex items-center gap-1">
                                         <span>✅</span>
@@ -1456,7 +1458,7 @@ export default function AdminPage() {
                           {/* Attachment Section */}
                           <div className="border-t pt-6">
                             <h3 className="font-russo text-lg text-chicho-dark mb-4">Prílohy (voliteľné)</h3>
-                            
+
                             {currentAttachments.length > 0 && (
                               <div className="space-y-2 mb-4">
                                 {currentAttachments.map((attachment) => (
@@ -1482,7 +1484,7 @@ export default function AdminPage() {
                                 ))}
                               </div>
                             )}
-                            
+
                             <div>
                               <Label htmlFor="attachment-upload" className="font-inter font-semibold">
                                 Nahrať prílohy (PDF, výkres, dokument...)
@@ -1507,7 +1509,7 @@ export default function AdminPage() {
                             <Button variant="outline" onClick={() => setShowNewNavodDialog(false)}>
                               Zrušiť
                             </Button>
-                            <Button 
+                            <Button
                               onClick={handleCreateNavod}
                               className="bg-chicho-red hover:bg-red-700 text-white"
                               disabled={!newNavodData.nazov || newNavodData.postupPrace.length === 0}
@@ -1518,8 +1520,8 @@ export default function AdminPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => setShowAllNavody(!showAllNavody)}
                     >
@@ -1549,7 +1551,7 @@ export default function AdminPage() {
                             className="mt-1"
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <Label className="font-inter font-semibold">Typ práce</Label>
@@ -1583,7 +1585,7 @@ export default function AdminPage() {
                                 ))}
                             </div>
                           </div>
-                          
+
                           <div>
                             <Label className="font-inter font-semibold">Produkt</Label>
                             <div className="mt-2 space-y-2">
@@ -1631,9 +1633,9 @@ export default function AdminPage() {
                               onClick={() => toggleSection('kroky')}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              <ChevronDown 
-                                size={16} 
-                                className={`transform transition-transform ${collapsedSections.kroky ? 'rotate-180' : ''}`} 
+                              <ChevronDown
+                                size={16}
+                                className={`transform transition-transform ${collapsedSections.kroky ? 'rotate-180' : ''}`}
                               />
                             </Button>
                           </div>
@@ -1658,7 +1660,7 @@ export default function AdminPage() {
                             </Button>
                           </div>
                         </div>
-                        
+
                         {!collapsedSections.kroky && (
                           <div className="space-y-3">
                             {newNavodData.postupPrace.map((krok, index) => (
@@ -1706,9 +1708,9 @@ export default function AdminPage() {
                               onClick={() => toggleSection('naradie')}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              <ChevronDown 
-                                size={16} 
-                                className={`transform transition-transform ${collapsedSections.naradie ? 'rotate-180' : ''}`} 
+                              <ChevronDown
+                                size={16}
+                                className={`transform transition-transform ${collapsedSections.naradie ? 'rotate-180' : ''}`}
                               />
                             </Button>
                           </div>
@@ -1722,7 +1724,7 @@ export default function AdminPage() {
                             Pridať náradie
                           </Button>
                         </div>
-                        
+
                         {!collapsedSections.naradie && (
                           <div className="space-y-2">
                             {newNavodData.potrebneNaradie.map((item) => (
@@ -1760,9 +1762,9 @@ export default function AdminPage() {
                               onClick={() => toggleSection('pozor')}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              <ChevronDown 
-                                size={16} 
-                                className={`transform transition-transform ${collapsedSections.pozor ? 'rotate-180' : ''}`} 
+                              <ChevronDown
+                                size={16}
+                                className={`transform transition-transform ${collapsedSections.pozor ? 'rotate-180' : ''}`}
                               />
                             </Button>
                           </div>
@@ -1776,7 +1778,7 @@ export default function AdminPage() {
                             Pridať upozornenie
                           </Button>
                         </div>
-                        
+
                         {!collapsedSections.pozor && (
                           <div className="space-y-2">
                             {newNavodData.naCoSiDatPozor.map((item) => (
@@ -1814,9 +1816,9 @@ export default function AdminPage() {
                               onClick={() => toggleSection('chyby')}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              <ChevronDown 
-                                size={16} 
-                                className={`transform transition-transform ${collapsedSections.chyby ? 'rotate-180' : ''}`} 
+                              <ChevronDown
+                                size={16}
+                                className={`transform transition-transform ${collapsedSections.chyby ? 'rotate-180' : ''}`}
                               />
                             </Button>
                           </div>
@@ -1830,7 +1832,7 @@ export default function AdminPage() {
                             Pridať chybu
                           </Button>
                         </div>
-                        
+
                         {!collapsedSections.chyby && (
                           <div className="space-y-2">
                             {newNavodData.casteChyby.map((item) => (
@@ -1859,7 +1861,7 @@ export default function AdminPage() {
                       {/* Images Section */}
                       <div className="border-t pt-6">
                         <h3 className="font-russo text-lg text-chicho-dark mb-4">Obrázky</h3>
-                        
+
                         <div className="mb-4">
                           <Label htmlFor="edit-image-upload" className="font-inter font-semibold">Nahrať obrázky</Label>
                           <Input
@@ -1871,7 +1873,7 @@ export default function AdminPage() {
                             className="mt-1"
                           />
                         </div>
-                        
+
                         {uploadedImages.length > 0 && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {uploadedImages.map((image) => (
@@ -1892,7 +1894,7 @@ export default function AdminPage() {
                                     }}
                                   />
                                 </div>
-                                
+
                                 {/* Enhanced text area with guaranteed visibility */}
                                 <div className="space-y-2 bg-gray-50 rounded-lg p-3">
                                   <Input
@@ -1928,7 +1930,7 @@ export default function AdminPage() {
                                       <Trash2 size={16} />
                                     </Button>
                                   </div>
-                                  
+
                                   {/* Text visibility guarantee indicator */}
                                   <div className="text-xs text-green-600 flex items-center gap-1">
                                     <span>✅</span>
@@ -1958,7 +1960,7 @@ export default function AdminPage() {
                       {/* Attachment Section */}
                       <div className="border-t pt-6">
                         <h3 className="font-russo text-lg text-chicho-dark mb-4">Prílohy (voliteľné)</h3>
-                        
+
                         {currentAttachments.length > 0 && (
                           <div className="space-y-2 mb-4">
                             {currentAttachments.map((attachment) => (
@@ -1984,7 +1986,7 @@ export default function AdminPage() {
                             ))}
                           </div>
                         )}
-                        
+
                         <div>
                           <Label htmlFor="edit-attachment-upload" className="font-inter font-semibold">
                             Nahrať prílohy (PDF, výkres, dokument...)
@@ -2009,7 +2011,7 @@ export default function AdminPage() {
                         <Button variant="outline" onClick={() => setShowEditNavodDialog(false)}>
                           Zrušiť
                         </Button>
-                        <Button 
+                        <Button
                           onClick={handleSaveEditNavod}
                           className="bg-chicho-red hover:bg-red-700 text-white"
                           disabled={!newNavodData.nazov || newNavodData.postupPrace.length === 0}
@@ -2020,7 +2022,7 @@ export default function AdminPage() {
                     </div>
                   </DialogContent>
                 </Dialog>
-                
+
                 {/* Návody List */}
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {(currentNavody || []).length > 0 ? (
@@ -2039,26 +2041,26 @@ export default function AdminPage() {
                           </div>
                           <div className="flex items-center space-x-1">
                             <Link href={`/navody/${navod.slug}`}>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 title="Zobraziť návod"
                                 className="text-blue-600 hover:text-blue-700"
                               >
                                 <Eye size={14} />
                               </Button>
                             </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleEditNavod(navod)}
                               title="Upraviť návod"
                             >
                               <Edit3 size={14} />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               className="text-red-600 hover:text-red-700"
                               onClick={() => handleDeleteNavod(navod)}
                               title="Odstrániť návod"
@@ -2082,202 +2084,202 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-russo text-lg text-chicho-red">Správa tagov ({currentTagy?.length || 0})</h2>
                   <Dialog open={showNewTagDialog} onOpenChange={setShowNewTagDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Hash size={16} className="mr-2" />
-                      Nový tag
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="font-russo text-chicho-red">Vytvoriť nový tag</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div>
-                        <Label htmlFor="tag-nazov" className="font-inter font-semibold">Názov</Label>
-                        <Input
-                          id="tag-nazov"
-                          value={newTagData.nazov}
-                          onChange={(e) => setNewTagData(prev => ({ ...prev, nazov: e.target.value }))}
-                          placeholder="napr. zváračka"
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="tag-typ" className="font-inter font-semibold">Typ</Label>
-                        <Select
-                          value={newTagData.typ}
-                          onValueChange={(value: 'typ-prace' | 'produkt') => setNewTagData(prev => ({ ...prev, typ: value }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="typ-prace">Typ práce</SelectItem>
-                            <SelectItem value="produkt">Produkt</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="tag-farba" className="font-inter font-semibold">Farba</Label>
-                        <div className="flex items-center gap-3 mt-1">
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Hash size={16} className="mr-2" />
+                        Nový tag
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="font-russo text-chicho-red">Vytvoriť nový tag</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div>
+                          <Label htmlFor="tag-nazov" className="font-inter font-semibold">Názov</Label>
                           <Input
-                            id="tag-farba"
-                            type="color"
-                            value={newTagData.farba}
-                            onChange={(e) => setNewTagData(prev => ({ ...prev, farba: e.target.value }))}
-                            className="w-16 h-10 p-1 border border-gray-300 rounded cursor-pointer"
-                          />
-                          <Input
-                            value={newTagData.farba}
-                            onChange={(e) => setNewTagData(prev => ({ ...prev, farba: e.target.value }))}
-                            placeholder="#3B82F6"
-                            className="flex-1"
+                            id="tag-nazov"
+                            value={newTagData.nazov}
+                            onChange={(e) => setNewTagData(prev => ({ ...prev, nazov: e.target.value }))}
+                            placeholder="napr. zváračka"
+                            className="mt-1"
                           />
                         </div>
+
+                        <div>
+                          <Label htmlFor="tag-typ" className="font-inter font-semibold">Typ</Label>
+                          <Select
+                            value={newTagData.typ}
+                            onValueChange={(value: 'typ-prace' | 'produkt') => setNewTagData(prev => ({ ...prev, typ: value }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="typ-prace">Typ práce</SelectItem>
+                              <SelectItem value="produkt">Produkt</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="tag-farba" className="font-inter font-semibold">Farba</Label>
+                          <div className="flex items-center gap-3 mt-1">
+                            <Input
+                              id="tag-farba"
+                              type="color"
+                              value={newTagData.farba}
+                              onChange={(e) => setNewTagData(prev => ({ ...prev, farba: e.target.value }))}
+                              className="w-16 h-10 p-1 border border-gray-300 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={newTagData.farba}
+                              onChange={(e) => setNewTagData(prev => ({ ...prev, farba: e.target.value }))}
+                              placeholder="#3B82F6"
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end space-x-3 pt-4">
+                          <Button variant="outline" onClick={() => setShowNewTagDialog(false)}>
+                            Zrušiť
+                          </Button>
+                          <Button
+                            onClick={handleCreateTag}
+                            className="bg-chicho-red hover:bg-red-700 text-white"
+                            disabled={!newTagData.nazov}
+                          >
+                            Vytvoriť tag
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center justify-end space-x-3 pt-4">
-                        <Button variant="outline" onClick={() => setShowNewTagDialog(false)}>
+                    </DialogContent>
+                  </Dialog>
+
+                  <div className="space-y-4 max-h-64 overflow-y-auto">
+                    {/* Typ práce tags */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-russo text-sm text-gray-700">Typ práce ({(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length})</h3>
+                        {(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length > 5 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAllTypPraceTags(!showAllTypPraceTags)}
+                            className="text-xs text-chicho-red hover:text-red-700"
+                          >
+                            {showAllTypPraceTags ? 'Menej' : `+${(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length - 5}`}
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(currentTagy || [])
+                          .filter(tag => tag.typ === 'typ-prace')
+                          .slice(0, showAllTypPraceTags ? undefined : 5)
+                          .map(tag => (
+                            <div key={tag.id} className="relative group flex items-center">
+                              <Badge
+                                variant="outline"
+                                className="font-inter pr-8"
+                                style={{ borderColor: tag.farba, color: tag.farba }}
+                              >
+                                {tag.nazov}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteTag(tag)}
+                                className="absolute right-1 h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200 hover:border-red-300"
+                                title={`Odstrániť tag "${tag.nazov}"`}
+                              >
+                                <X size={10} />
+                              </Button>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    {/* Produkt tags */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-russo text-sm text-gray-700">Produkt ({(currentTagy || []).filter(tag => tag.typ === 'produkt').length})</h3>
+                        {(currentTagy || []).filter(tag => tag.typ === 'produkt').length > 5 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAllProduktTags(!showAllProduktTags)}
+                            className="text-xs text-chicho-red hover:text-red-700"
+                          >
+                            {showAllProduktTags ? 'Menej' : `+${(currentTagy || []).filter(tag => tag.typ === 'produkt').length - 5}`}
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(currentTagy || [])
+                          .filter(tag => tag.typ === 'produkt')
+                          .slice(0, showAllProduktTags ? undefined : 5)
+                          .map(tag => (
+                            <div key={tag.id} className="relative group flex items-center">
+                              <Badge
+                                variant="outline"
+                                className="font-inter pr-8"
+                                style={{ borderColor: tag.farba, color: tag.farba }}
+                              >
+                                {tag.nazov}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteTag(tag)}
+                                className="absolute right-1 h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200 hover:border-red-300"
+                                title={`Odstrániť tag "${tag.nazov}"`}
+                              >
+                                <X size={10} />
+                              </Button>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tag Delete Confirmation Dialog */}
+                <Dialog open={showDeleteTagDialog} onOpenChange={setShowDeleteTagDialog}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-russo text-chicho-red">Odstrániť tag</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <div className="mb-4">
+                        <p className="font-inter text-chicho-dark mb-2">
+                          Naozaj chcete odstrániť tag <span className="font-bold">"{tagToDelete?.nazov}"</span>?
+                        </p>
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                          <div className="flex items-start space-x-2">
+                            <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-amber-800">
+                              <p className="font-semibold mb-1">Upozornenie:</p>
+                              <p>Tag bude odstránený zo všetkých návodov, ktoré ho používajú. Táto akcia je nevratná.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-3">
+                        <Button variant="outline" onClick={() => setShowDeleteTagDialog(false)}>
                           Zrušiť
                         </Button>
-                        <Button 
-                          onClick={handleCreateTag}
-                          className="bg-chicho-red hover:bg-red-700 text-white"
-                          disabled={!newTagData.nazov}
+                        <Button
+                          onClick={handleConfirmDeleteTag}
+                          className="bg-red-600 hover:bg-red-700 text-white"
                         >
-                          Vytvoriť tag
+                          Vymazať
                         </Button>
                       </div>
                     </div>
                   </DialogContent>
                 </Dialog>
-                
-                <div className="space-y-4 max-h-64 overflow-y-auto">
-                {/* Typ práce tags */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-russo text-sm text-gray-700">Typ práce ({(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length})</h3>
-                    {(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length > 5 && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowAllTypPraceTags(!showAllTypPraceTags)}
-                        className="text-xs text-chicho-red hover:text-red-700"
-                      >
-                        {showAllTypPraceTags ? 'Menej' : `+${(currentTagy || []).filter(tag => tag.typ === 'typ-prace').length - 5}`}
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(currentTagy || [])
-                      .filter(tag => tag.typ === 'typ-prace')
-                      .slice(0, showAllTypPraceTags ? undefined : 5)
-                      .map(tag => (
-                        <div key={tag.id} className="relative group flex items-center">
-                          <Badge
-                            variant="outline"
-                            className="font-inter pr-8"
-                            style={{ borderColor: tag.farba, color: tag.farba }}
-                          >
-                            {tag.nazov}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteTag(tag)}
-                            className="absolute right-1 h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200 hover:border-red-300"
-                            title={`Odstrániť tag "${tag.nazov}"`}
-                          >
-                            <X size={10} />
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-                
-                {/* Produkt tags */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-russo text-sm text-gray-700">Produkt ({(currentTagy || []).filter(tag => tag.typ === 'produkt').length})</h3>
-                    {(currentTagy || []).filter(tag => tag.typ === 'produkt').length > 5 && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowAllProduktTags(!showAllProduktTags)}
-                        className="text-xs text-chicho-red hover:text-red-700"
-                      >
-                        {showAllProduktTags ? 'Menej' : `+${(currentTagy || []).filter(tag => tag.typ === 'produkt').length - 5}`}
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(currentTagy || [])
-                      .filter(tag => tag.typ === 'produkt')
-                      .slice(0, showAllProduktTags ? undefined : 5)
-                      .map(tag => (
-                        <div key={tag.id} className="relative group flex items-center">
-                          <Badge
-                            variant="outline"
-                            className="font-inter pr-8"
-                            style={{ borderColor: tag.farba, color: tag.farba }}
-                          >
-                            {tag.nazov}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteTag(tag)}
-                            className="absolute right-1 h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200 hover:border-red-300"
-                            title={`Odstrániť tag "${tag.nazov}"`}
-                          >
-                            <X size={10} />
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
-                </div>
-
-              {/* Tag Delete Confirmation Dialog */}
-              <Dialog open={showDeleteTagDialog} onOpenChange={setShowDeleteTagDialog}>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="font-russo text-chicho-red">Odstrániť tag</DialogTitle>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <div className="mb-4">
-                      <p className="font-inter text-chicho-dark mb-2">
-                        Naozaj chcete odstrániť tag <span className="font-bold">"{tagToDelete?.nazov}"</span>?
-                      </p>
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                        <div className="flex items-start space-x-2">
-                          <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-amber-800">
-                            <p className="font-semibold mb-1">Upozornenie:</p>
-                            <p>Tag bude odstránený zo všetkých návodov, ktoré ho používajú. Táto akcia je nevratná.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-end space-x-3">
-                      <Button variant="outline" onClick={() => setShowDeleteTagDialog(false)}>
-                        Zrušiť
-                      </Button>
-                      <Button 
-                        onClick={handleConfirmDeleteTag}
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        Vymazať
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
               </section>
             </div>
 
@@ -2292,9 +2294,9 @@ export default function AdminPage() {
                 </h2>
                 <div className="flex items-center gap-2">
                   {(visitStats || []).length > 2 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setShowAllVisitStats(!showAllVisitStats)}
                       className="text-xs text-chicho-red hover:text-red-700"
                     >
@@ -2307,7 +2309,7 @@ export default function AdminPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {(visitStats || []).length > 0 ? (
                   (visitStats || [])
@@ -2369,7 +2371,7 @@ export default function AdminPage() {
                           className="mt-1"
                         />
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="user-email" className="font-inter font-semibold">Email</Label>
                         <Input
@@ -2381,7 +2383,7 @@ export default function AdminPage() {
                           className="mt-1"
                         />
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="user-heslo" className="font-inter font-semibold">Heslo</Label>
                         <Input
@@ -2393,7 +2395,7 @@ export default function AdminPage() {
                           className="mt-1"
                         />
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="user-uroven" className="font-inter font-semibold">Úroveň</Label>
                         <Select
@@ -2409,12 +2411,12 @@ export default function AdminPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="flex items-center justify-end space-x-3 pt-4">
                         <Button variant="outline" onClick={() => setShowNewUserDialog(false)}>
                           Zrušiť
                         </Button>
-                        <Button 
+                        <Button
                           onClick={handleCreateUser}
                           className="bg-chicho-red hover:bg-red-700 text-white"
                           disabled={!newUserData.meno || !newUserData.email || !newUserData.heslo}
@@ -2426,7 +2428,7 @@ export default function AdminPage() {
                   </DialogContent>
                 </Dialog>
               </div>
-              
+
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {(currentUzivatelia || []).length > 0 ? (
                   (currentUzivatelia || []).map((uzivatel) => (
@@ -2441,27 +2443,27 @@ export default function AdminPage() {
                         </p>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleViewUserActivity(uzivatel)}
                           title="Zobraziť aktivitu používateľa"
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Activity size={14} />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEditUser(uzivatel)}
                           title="Upraviť používateľa"
                         >
                           <Edit3 size={14} />
                         </Button>
                         {uzivatel.uroven !== 'admin' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-red-600 hover:text-red-700"
                             onClick={() => handleDeleteUser(uzivatel)}
                             title="Odstrániť používateľa"
@@ -2496,7 +2498,7 @@ export default function AdminPage() {
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor="edit-user-email" className="font-inter font-semibold">Email</Label>
                       <Input
@@ -2507,7 +2509,7 @@ export default function AdminPage() {
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor="edit-user-heslo" className="font-inter font-semibold">Nové heslo (voliteľné)</Label>
                       <Input
@@ -2519,7 +2521,7 @@ export default function AdminPage() {
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor="edit-user-uroven" className="font-inter font-semibold">Úroveň</Label>
                       <Select
@@ -2535,12 +2537,12 @@ export default function AdminPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="flex items-center justify-end space-x-3 pt-4">
                       <Button variant="outline" onClick={() => setShowEditUserDialog(false)}>
                         Zrušiť
                       </Button>
-                      <Button 
+                      <Button
                         onClick={handleSaveEditUser}
                         className="bg-chicho-red hover:bg-red-700 text-white"
                         disabled={!newUserData.meno || !newUserData.email}
@@ -2593,8 +2595,8 @@ export default function AdminPage() {
                             </div>
                             <div>
                               <p className="text-2xl font-bold text-green-600">
-                                {selectedUserForActivity.poslednePohlasenie ? 
-                                  new Date(selectedUserForActivity.poslednePohlasenie).toLocaleDateString('sk-SK') : 
+                                {selectedUserForActivity.poslednePohlasenie ?
+                                  new Date(selectedUserForActivity.poslednePohlasenie).toLocaleDateString('sk-SK') :
                                   'Nikdy'
                                 }
                               </p>
@@ -2609,27 +2611,26 @@ export default function AdminPage() {
                             <Clock size={16} className="mr-2" />
                             Posledných 20 aktivít
                           </h4>
-                          
+
                           <div className="space-y-2 max-h-96 overflow-y-auto">
                             {(selectedUserForActivity.historiaAktivit || [])
                               .sort((a, b) => new Date(b.cas).getTime() - new Date(a.cas).getTime())
                               .slice(0, 20)
                               .map((aktivita) => (
                                 <div key={aktivita.id} className="flex items-start space-x-3 p-3 bg-white border border-gray-200 rounded-lg">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold ${
-                                    aktivita.typ === 'prihlasenie' ? 'bg-green-500' :
-                                    aktivita.typ === 'navsteva-navodu' ? 'bg-blue-500' :
-                                    aktivita.typ === 'export-pdf' ? 'bg-purple-500' :
-                                    aktivita.typ === 'qr-generovanie' ? 'bg-orange-500' :
-                                    aktivita.typ === 'vytvorenie-pripomienky' ? 'bg-yellow-500' :
-                                    'bg-gray-500'
-                                  }`}>
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold ${aktivita.typ === 'prihlasenie' ? 'bg-green-500' :
+                                      aktivita.typ === 'navsteva-navodu' ? 'bg-blue-500' :
+                                        aktivita.typ === 'export-pdf' ? 'bg-purple-500' :
+                                          aktivita.typ === 'qr-generovanie' ? 'bg-orange-500' :
+                                            aktivita.typ === 'vytvorenie-pripomienky' ? 'bg-yellow-500' :
+                                              'bg-gray-500'
+                                    }`}>
                                     {aktivita.typ === 'prihlasenie' ? '🔐' :
-                                     aktivita.typ === 'navsteva-navodu' ? '👁️' :
-                                     aktivita.typ === 'export-pdf' ? '📄' :
-                                     aktivita.typ === 'qr-generovanie' ? '📱' :
-                                     aktivita.typ === 'vytvorenie-pripomienky' ? '💬' :
-                                     '📋'
+                                      aktivita.typ === 'navsteva-navodu' ? '👁️' :
+                                        aktivita.typ === 'export-pdf' ? '📄' :
+                                          aktivita.typ === 'qr-generovanie' ? '📱' :
+                                            aktivita.typ === 'vytvorenie-pripomienky' ? '💬' :
+                                              '📋'
                                     }
                                   </div>
                                   <div className="flex-1 min-w-0">
@@ -2642,7 +2643,7 @@ export default function AdminPage() {
                                   </div>
                                 </div>
                               ))}
-                            
+
                             {(selectedUserForActivity.historiaAktivit || []).length === 0 && (
                               <div className="text-center py-6">
                                 <Clock size={32} className="mx-auto text-gray-400 mb-2" />
@@ -2693,13 +2694,13 @@ export default function AdminPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 {filteredPripomienky.length > 0 ? (
                   filteredPripomienky.map((pripomienka) => {
                     const uzivatel = (currentUzivatelia || []).find(u => u.id === pripomienka.uzivatelId);
                     const navod = (currentNavody || []).find(n => n.id === pripomienka.navodId);
-                    
+
                     return (
                       <div key={pripomienka.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-start justify-between mb-3">
@@ -2730,8 +2731,8 @@ export default function AdminPage() {
                               </Link>
                             )}
                             {pripomienka.stav === 'nevybavena' && (
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleMarkFeedbackDone(pripomienka.id)}
                                 className="text-green-600 hover:text-green-700"
@@ -2767,7 +2768,7 @@ export default function AdminPage() {
               {/* Quick Actions */}
               <section className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-5">
                 <h2 className="font-russo text-lg text-chicho-red mb-4">Rýchle akcie</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <Button variant="outline" className="h-16 flex flex-col items-center justify-center">
                     <Plus size={20} className="mb-1" />
@@ -2787,7 +2788,7 @@ export default function AdminPage() {
               {/* System Info */}
               <section className="bg-gray-100 rounded-lg border border-gray-200 p-5">
                 <h2 className="font-russo text-lg text-gray-700 mb-4">Systém</h2>
-                
+
                 <div className="space-y-4 text-sm font-inter">
                   <div>
                     <h4 className="font-semibold text-chicho-dark mb-2">Portál</h4>
@@ -2808,7 +2809,7 @@ export default function AdminPage() {
           <div className="p-4">
             <AuthDebug />
           </div>
-          
+
           {/* Logo Upload Section - moved to bottom */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="bg-white rounded-lg border border-gray-200 p-5">
