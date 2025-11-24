@@ -1,0 +1,94 @@
+{
+  "vyrobne_navody": [
+    {
+      "id": "1",
+      "nazov": "Vŕtanie diery na kľučku – okno",
+      "slug": "vrtanie-diery-na-klucku-okno",
+      "typ_prace": ["vrtanie"],
+      "produkt": ["okno"],
+      "kroky": [
+        "Pripravte si potrebné náradie: vŕtačku s vrtákom Ø 16mm, šablónu na značenie, ceruzku, meter",
+        "Umiestnite šablónu na správnu stranu okenného rámu podľa typu otvárania",
+        "Skontrolujte výšku umiestnenia šablóny - štandard 1100mm od spodnej hrany rámu",
+        "Označte ceruzkou miesta na vŕtanie podľa šablóny",
+        "Nastavte vŕtačku na správne otáčky (800-1000 ot/min) a použite ostrý vrták",
+        "Vyvŕtajte diery kolmo na povrch, pozor na presné dodržanie hĺbky",
+        "Očistite diery od pilín a skontrolujte rozmer kalibrom",
+        "Skontrolujte funkčnosť kľučky pred dokončením montáže"
+      ],
+      "na_co_si_dat_pozor": [
+        "Skontrolujte správnu stranu otvárania pred značením",
+        "Dodržte presne výšku 1100mm od spodnej hrany rámu",
+        "Použite ostrý vrták - tupý vrták spôsobuje trhliny",
+        "Vŕtajte kolmo na povrch, nie šikmo",
+        "Nekončite vŕtanie príliš hlboko - môžete poškodiť tesnenie",
+        "Očistite diery pred montážou kľučky"
+      ],
+      "caste_chyby": [
+        "Zvolená nesprávna strana otvárania okna",
+        "Nesprávna výška umiestnenia kľučky",
+        "Zle nastavená vŕtačka - príliš vysoké otáčky",
+        "Vrták nie je kolmo na povrch",
+        "Diery sú príliš hlboké alebo plytké",
+        "Nedostatočne vyčistené diery"
+      ],
+      "vytvorene": "2025-01-15T00:00:00.000Z",
+      "aktualizovane": "2025-01-15T00:00:00.000Z"
+    }
+  ],
+  "skolenia": [
+    {
+      "id": "1",
+      "nazov": "Základy vŕtania pre montážnikov",
+      "pozicia": ["montaznik", "asistent-montaznika"],
+      "material": "Základné techniky vŕtania v dreve a hliníku:\n- Výber správneho vrtáku podľa materiálu\n- Nastavenie otáčok vŕtačky\n- Technika držania vŕtačky\n- Bezpečnostné pravidlá\n- Údržba náradia",
+      "test": "/test/vrtanie-zaklady",
+      "bodovania": 100,
+      "vytvorene": "2025-01-10T00:00:00.000Z"
+    }
+  ],
+  "pozicie": [
+    {
+      "id": "1",
+      "nazov": "Montážnik okien a dverí",
+      "popis": "Zodpovedný za montáž okien, dverí a portálov podľa technických výkresov",
+      "potrebne_skolenia": ["1"]
+    },
+    {
+      "id": "2",
+      "nazov": "Asistent montážnika",
+      "popis": "Pomocník pri montáži, príprava materiálu a náradia",
+      "potrebne_skolenia": ["1"]
+    }
+  ],
+  "chyby": [
+    {
+      "id": "1",
+      "nazov": "Nesprávne umiestnenie kľučky",
+      "popis": "Kľučka bola namontovaná na nesprávnej strane alebo vo nesprávnej výške",
+      "kritickost": 4,
+      "suvisiaci_navod": "1",
+      "riesenie": "Demontáž kľučky, oprava dier tmeleím, nové vŕtanie podľa šablóny",
+      "vytvorene": "2025-01-16T00:00:00.000Z"
+    }
+  ],
+  "tagy": [
+    { "id": "1", "nazov": "vrtanie", "typ": "typ-prace", "farba": "#0066CC" },
+    { "id": "2", "nazov": "frézovanie", "typ": "typ-prace", "farba": "#009900" },
+    { "id": "3", "nazov": "montáž", "typ": "typ-prace", "farba": "#FF6600" },
+    { "id": "4", "nazov": "kontrola", "typ": "typ-prace", "farba": "#9900CC" },
+    { "id": "5", "nazov": "balenie", "typ": "typ-prace", "farba": "#CC0066" },
+    { "id": "6", "nazov": "okno", "typ": "produkt", "farba": "#C20000" },
+    { "id": "7", "nazov": "dvere", "typ": "produkt", "farba": "#CC6600" },
+    { "id": "8", "nazov": "HS portál", "typ": "produkt", "farba": "#006600" },
+    { "id": "9", "nazov": "rám", "typ": "produkt", "farba": "#666666" },
+    { "id": "10", "nazov": "montaznik", "typ": "pozicia", "farba": "#003366" },
+    { "id": "11", "nazov": "asistent-montaznika", "typ": "pozicia", "farba": "#336666" }
+  ],
+  "meta": {
+    "export_date": "2025-07-29T00:00:00.000Z",
+    "version": "1.0.0",
+    "company": "CHICHO s.r.o.",
+    "description": "Demo dataset pre CHICHO výrobný a školiaci portál"
+  }
+}

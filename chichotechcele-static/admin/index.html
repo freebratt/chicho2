@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="sk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CHICHO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div id="sidebar" class="hidden lg:block"></div>
+
+    <!-- Mobile Header -->
+    <div id="mobileHeader" class="lg:hidden"></div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-80 p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 font-russo">Admin Dashboard</h1>
+                <p class="text-gray-600 mt-1">Prehľad systému CHICHO</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Návody</p>
+                            <p id="statNavody" class="text-3xl font-bold text-gray-900 mt-1">-</p>
+                        </div>
+                        <div class="text-4xl">📚</div>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Používatelia</p>
+                            <p id="statUsers" class="text-3xl font-bold text-gray-900 mt-1">-</p>
+                        </div>
+                        <div class="text-4xl">👥</div>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Pripomienky</p>
+                            <p id="statFeedback" class="text-3xl font-bold text-gray-900 mt-1">-</p>
+                        </div>
+                        <div class="text-4xl">💬</div>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Nevybavené</p>
+                            <p id="statPending" class="text-3xl font-bold text-red-600 mt-1">-</p>
+                        </div>
+                        <div class="text-4xl">⚠️</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Návody -->
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 font-russo">Posledné návody</h3>
+                    <div id="recentNavody" class="space-y-3">
+                        <div class="flex justify-center py-4">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Feedback -->
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 font-russo">Najnovšie pripomienky</h3>
+                    <div id="recentFeedback" class="space-y-3">
+                        <div class="flex justify-center py-4">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        const API_BASE = '../api';
+        window.layoutPage = 'admin';
+
+        async function init() {
+            const user = await requireAdmin();
+            if (!user) return;
+
+            document.getElementById('sidebar').innerHTML = createSidebar(user, 'admin');
+            document.getElementById('mobileHeader').innerHTML = createMobileHeader(user);
+
+            await loadStats();
+        }
+
+        async function loadStats() {
+            try {
+                // Load Návody
+                const navodyRes = await fetch(`${API_BASE}/navody.php`);
+                const navodyData = await navodyRes.json();
+                const navody = navodyData.navody || [];
+                document.getElementById('statNavody').textContent = navody.length;
+
+                // Show recent návody
+                const recent = document.getElementById('recentNavody');
+                if (navody.length === 0) {
+                    recent.innerHTML = '<p class="text-gray-500 text-center">Žiadne návody</p>';
+                } else {
+                    recent.innerHTML = navody.slice(0, 5).map(n => `
+                        <div class="flex items-center justify-between py-2 border-b last:border-0">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">${escapeHtml(n.nazov)}</p>
+                                <p class="text-sm text-gray-500">${formatDate(n.updated_at)}</p>
+                            </div>
+                            <a href="../navod.html?slug=${n.slug}" class="text-red-600 hover:text-red-700 text-sm font-medium">
+                                Zobraziť →
+                            </a>
+                        </div>
+                    `).join('');
+                }
+
+                // Load Users
+                const usersRes = await fetch(`${API_BASE}/users.php`);
+                const usersData = await usersRes.json();
+                document.getElementById('statUsers').textContent = (usersData.users || []).length;
+
+                // Load Feedback
+                const feedbackRes = await fetch(`${API_BASE}/feedback.php`);
+                const feedbackData = await feedbackRes.json();
+                const feedback = feedbackData.pripomienky || [];
+                document.getElementById('statFeedback').textContent = feedback.length;
+
+                const pending = feedback.filter(f => f.stav === 'nevybavena');
+                document.getElementById('statPending').textContent = pending.length;
+
+                // Show recent feedback
+                const recentFb = document.getElementById('recentFeedback');
+                if (feedback.length === 0) {
+                    recentFb.innerHTML = '<p class="text-gray-500 text-center">Žiadne pripomienky</p>';
+                } else {
+                    recentFb.innerHTML = feedback.slice(0, 5).map(f => `
+                        <div class="py-2 border-b last:border-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <p class="font-medium text-gray-900 text-sm">${escapeHtml(f.navod_nazov || 'Návod')}</p>
+                                <span class="badge ${f.stav === 'nevybavena' ? 'badge-orange' : 'badge-green'} text-xs">
+                                    ${f.stav === 'nevybavena' ? 'Nové' : 'Vybavené'}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(f.sprava)}</p>
+                            <p class="text-xs text-gray-500 mt-1">${escapeHtml(f.user_name || 'Používateľ')} • ${formatDate(f.created_at)}</p>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error('Failed to load stats:', err);
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

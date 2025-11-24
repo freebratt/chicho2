@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="sk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHICHO - Detail návodu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .chicho-text {
+            color: #DC2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="navody.html" class="font-orbitron text-2xl chicho-text">CHICHO</a>
+                    <span class="text-gray-400">|</span>
+                    <span class="text-gray-600">Detail návodu</span>
+                </div>
+                <button onclick="logout()" class="text-red-600 hover:text-red-700 font-medium">
+                    Odhlásiť sa
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <p class="mt-2 text-gray-600">Načítavam návod...</p>
+        </div>
+
+        <!-- Návod Content -->
+        <div id="navodContent" class="hidden">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-md p-8 mb-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h1 id="navodNazov" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+                        <div id="navodTags" class="flex flex-wrap gap-2 mt-4"></div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="exportPDF()"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            📄 Exportovať PDF
+                        </button>
+                        <button onclick="showQR()"
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            📱 QR Kód
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video -->
+                <div id="videoSection" class="mb-6 hidden">
+                    <h3 class="text-xl font-bold mb-3">📹 Video návod</h3>
+                    <div id="videoEmbed"></div>
+                </div>
+            </div>
+
+            <!-- Potrebné náradie -->
+            <div id="naradieSection" class="bg-white rounded-lg shadow-md p-8 mb-6hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">🔧 Potrebné náradie</h2>
+                <ul id="naradieList" class="space-y-2"></ul>
+            </div>
+
+            <!-- Postup práce -->
+            <div id="postupSection" class="bg-white rounded-lg shadow-md p-8 mb-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">📋 Postup práce</h2>
+                <div id="postupList" class="space-y-4"></div>
+            </div>
+
+            <!-- Na čo si dať pozor -->
+            <div id="pozorSection" class="bg-white rounded-lg shadow-md p-8 mb-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">⚠️ Na čo si dať pozor</h2>
+                <ul id="pozorList" class="space-y-2"></ul>
+            </div>
+
+            <!-- Časté chyby -->
+            <div id="chybySection" class="bg-white rounded-lg shadow-md p-8 mb-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">❌ Časté chyby</h2>
+                <ul id="chybyList" class="space-y-2"></ul>
+            </div>
+
+            <!-- Obrázky -->
+            <div id="obrazkySection" class="bg-white rounded-lg shadow-md p-8 mb-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">🖼️ Obrázky</h2>
+                <div id="obrazkyGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md">
+            <h3 class="text-xl font-bold mb-4">QR Kód - Prístup k návodu</h3>
+            <div id="qrcode" class="flex justify-center mb-4"></div>
+            <p class="text-sm text-gray-600 mb-4 text-center">Naskenujte QR kód pre rýchly prístup k návodu</p>
+            <button onclick="closeQR()" class="w-full bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700">
+                Zavrieť
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'api';
+        let currentNavod = null;
+
+        async function loadNavod() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug');
+
+            if (!slug) {
+                window.location.href = 'navody.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/navody.php?slug=${slug}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error);
+
+                currentNavod = data.navod;
+                renderNavod(currentNavod);
+            } catch (error) {
+                console.error('Failed to load návod:', error);
+                document.getElementById('loading').innerHTML = '<p class="text-red-600">Chyba pri načítavaní návodu</p>';
+            }
+        }
+
+        function renderNavod(navod) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('navodContent').classList.remove('hidden');
+
+            // Názov
+            document.getElementById('navodNazov').textContent = navod.nazov;
+
+            // Tagy
+            const tagsHtml = [];
+            if (navod.typPrace) {
+                navod.typPrace.forEach(tag => {
+                    tagsHtml.push(`<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${tag}</span>`);
+                });
+            }
+            if (navod.produkt) {
+                navod.produkt.forEach(tag => {
+                    tagsHtml.push(`<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">${tag}</span>`);
+                });
+            }
+            document.getElementById('navodTags').innerHTML = tagsHtml.join('');
+
+            // Náradie
+            if (navod.potrebneNaradie && navod.potrebneNaradie.length > 0) {
+                document.getElementById('naradieSection').classList.remove('hidden');
+                document.getElementById('naradieList').innerHTML = navod.potrebneNaradie
+                    .map(n => `<li class="flex items-start"><span class="text-red-600 mr-2">•</span><span>${n.popis}</span></li>`)
+                    .join('');
+            }
+
+            // Postup
+            if (navod.postupPrace && navod.postupPrace.length > 0) {
+                document.getElementById('postupSection').classList.remove('hidden');
+                document.getElementById('postupList').innerHTML = navod.postupPrace
+                    .map(k => `
+                        <div class="flex items-start">
+                            <span class="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold mr-3">${k.cislo}</span>
+                            <p class="flex-1 pt-1">${k.popis}</p>
+                        </div>
+                    `)
+                    .join('');
+            }
+
+            // Pozor        if (navod.naCoSiDatPozor && navod.naCoSiDatPozor.length > 0) {
+            document.getElementById('pozorSection').classList.remove('hidden');
+            document.getElementById('pozorList').innerHTML = navod.naCoSiDatPozor
+                .map(p => `<li class="flex items-start"><span class="text-yellow-600 mr-2">⚠️</span><span>${p.popis}</span></li>`)
+                .join('');
+        }
+
+        // Chyby
+        if (navod.casteChyby && navod.casteChyby.length > 0) {
+            document.getElementById('chybySection').classList.remove('hidden');
+            document.getElementById('chybyList').innerHTML = navod.casteChyby
+                .map(ch => `<li class="flex items-start"><span class="text-red-600 mr-2">✗</span><span>${ch.popis}</span></li>`)
+                .join('');
+        }
+
+        // Obrázky
+        if (navod.obrazky && navod.obrazky.length > 0) {
+            document.getElementById('obrazkySection').classList.remove('hidden');
+            document.getElementById('obrazkyGrid').innerHTML = navod.obrazky
+                .map(obr => `
+                        <div class="rounded-lg overflow-hidden shadow-md">
+                            <img src="${obr.url}" alt="${obr.popis}" class="w-full h-48 object-cover">
+                            <div class="p-3 bg-gray-50">
+                                <p class="text-sm font-medium">Krok ${obr.cislo_kroku}</p>
+                                <p class="text-sm text-gray-600">${obr.popis}</p>
+                            </div>
+                        </div>
+                    `)
+                .join('');
+        }
+        }
+
+        function exportPDF() {
+            alert('PDF export sa pripravuje...');
+            // TODO: Implementovať PDF export pomocou jsPDF
+        }
+
+        function showQR() {
+            const modal = document.getElementById('qrModal');
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+
+            new QRCode(qrcodeDiv, {
+                text: window.location.href,
+                width: 256,
+                height: 256,
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeQR() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        async function logout() {
+            await fetch(`${API_BASE}/auth.php?action=logout`, { method: 'POST' });
+            window.location.href = 'index.html';
+        }
+
+        // Init
+        loadNavod();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="sk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Návody - CHICHO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div id="sidebar" class="hidden lg:block"></div>
+
+    <!-- Mobile Header -->
+    <div id="mobileHeader" class="lg:hidden"></div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-80 p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-900 font-russo">Výrobné návody</h1>
+                <p class="text-gray-600 mt-1">Kliknite na návod pre zobrazenie detailov</p>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-6">
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Hľadať návody..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        onkeyup="searchNavody()">
+                </div>
+            </div>
+
+            <!-- Návody Grid -->
+            <div id="navodyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full flex justify-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        window.layoutPage = 'navody';
+        let allNavody = [];
+        let currentUser = null;
+
+        async function init() {
+            currentUser = await requireAuth();
+            if (!currentUser) return;
+
+            document.getElementById('sidebar').innerHTML = createSidebar(currentUser, 'navody');
+            document.getElementById('mobileHeader').innerHTML = createMobileHeader(currentUser);
+
+            await loadNavody();
+        }
+
+        async function loadNavody() {
+            try {
+                const res = await fetch(`${API_BASE}/navody.php`);
+                const data = await res.json();
+                allNavody = data.navody || [];
+                renderNavody();
+            } catch (err) {
+                showError('navodyGrid', 'Chyba pri načítavaní návodov');
+            }
+        }
+
+        function renderNavody(navody = allNavody) {
+            const grid = document.getElementById('navodyGrid');
+
+            if (navody.length === 0) {
+                showEmpty('navodyGrid', 'Žiadne návody nenájdené');
+                return;
+            }
+
+            grid.innerHTML = navody.map(navod => `
+                <div class="card p-6 hover:shadow-lg transition-shadow cursor-pointer fade-in" onclick="window.location.href='navod.html?slug=${navod.slug}'">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3 font-russo">${escapeHtml(navod.nazov)}</h3>
+                    
+                    ${navod.video_url ? `
+                        <div class="mb-3 flex items-center text-sm text-blue-600">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                            </svg>
+                            Má video
+                        </div>
+                    ` : ''}
+                    
+                    <div class="space-y-2">
+                        ${navod.typPrace && navod.typPrace.length > 0 ? `
+                            <div class="flex flex-wrap gap-2">
+                                ${navod.typPrace.map(tag => `
+                                    <span class="badge badge-blue">${escapeHtml(tag)}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${navod.produkt && navod.produkt.length > 0 ? `
+                            <div class="flex flex-wrap gap-2">
+                                ${navod.produkt.map(tag => `
+                                    <span class="badge badge-green">${escapeHtml(tag)}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t text-sm text-gray-500">
+                        Aktualizované: ${formatDate(navod.updated_at)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchNavody() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            if (!searchValue) {
+                renderNavody();
+                return;
+            }
+
+            const filtered = allNavody.filter(navod =>
+                navod.nazov.toLowerCase().includes(searchValue) ||
+                (navod.typPrace && navod.typPrace.some(t => t.toLowerCase().includes(searchValue))) ||
+                (navod.produkt && navod.produkt.some(p => p.toLowerCase().includes(searchValue)))
+            );
+
+            renderNavody(filtered);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

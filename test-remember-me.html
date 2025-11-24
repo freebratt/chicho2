@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Remember Me Functionality</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>CHICHO - Test Remember Me Functionality</h1>
+    
+    <div class="test-section">
+        <h3>Current Storage Status</h3>
+        <button onclick="checkStorage()">Check Storage</button>
+        <pre id="storageStatus"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>Simulate Login</h3>
+        <button onclick="simulateLogin(true)">Login with Remember Me</button>
+        <button onclick="simulateLogin(false)">Login without Remember Me</button>
+        <pre id="loginResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Logout</h3>
+        <button onclick="simulateLogout()">Logout</button>
+        <pre id="logoutResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>Clear All Storage</h3>
+        <button onclick="clearAllStorage()">Clear All</button>
+        <pre id="clearResult"></pre>
+    </div>
+
+    <script>
+        function checkStorage() {
+            const localStorage_data = localStorage.getItem('chicho_current_user');
+            const sessionStorage_data = sessionStorage.getItem('chicho_current_user');
+            
+            const result = {
+                localStorage: localStorage_data ? JSON.parse(localStorage_data) : null,
+                sessionStorage: sessionStorage_data ? JSON.parse(sessionStorage_data) : null,
+                timestamp: new Date().toISOString()
+            };
+            
+            document.getElementById('storageStatus').textContent = JSON.stringify(result, null, 2);
+        }
+        
+        function simulateLogin(rememberMe) {
+            const authData = {
+                userId: 'test-user-123',
+                email: 'test@chicho.tech',
+                uroven: 'admin',
+                loginTime: new Date().toISOString(),
+                rememberMe: rememberMe
+            };
+            
+            if (rememberMe) {
+                localStorage.setItem('chicho_current_user', JSON.stringify(authData));
+                sessionStorage.removeItem('chicho_current_user');
+            } else {
+                sessionStorage.setItem('chicho_current_user', JSON.stringify(authData));
+                localStorage.removeItem('chicho_current_user');
+            }
+            
+            document.getElementById('loginResult').textContent = 
+                `Login simulated with rememberMe: ${rememberMe}\n` +
+                `Stored in: ${rememberMe ? 'localStorage' : 'sessionStorage'}\n` +
+                `Data: ${JSON.stringify(authData, null, 2)}`;
+        }
+        
+        function simulateLogout() {
+            localStorage.removeItem('chicho_current_user');
+            sessionStorage.removeItem('chicho_current_user');
+            
+            document.getElementById('logoutResult').textContent = 
+                'Logout completed - both localStorage and sessionStorage cleared\n' +
+                'Timestamp: ' + new Date().toISOString();
+        }
+        
+        function clearAllStorage() {
+            // Clear all CHICHO related data
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('chicho_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.startsWith('chicho_')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
+            
+            document.getElementById('clearResult').textContent = 
+                'All CHICHO storage cleared\n' +
+                'Timestamp: ' + new Date().toISOString();
+        }
+        
+        // Auto-check storage on page load
+        window.onload = function() {
+            checkStorage();
+        };
+    </script>
+</body>
+</html>

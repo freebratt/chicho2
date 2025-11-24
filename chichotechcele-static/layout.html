@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="sk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHICHO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&family=Russo+One&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'chicho-red': '#DC2626',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Desktop Sidebar -->
+    <div id="sidebar" class="hidden lg:block"></div>
+
+    <!-- Mobile Header -->
+    <div id="mobileHeader" class="lg:hidden"></div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-80">
+        <div id="content" class="p-6">
+            <!-- Content injected here -->
+        </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileMenu" class="hidden"></div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+            // Initialize layout
+            (async () => {
+                const user = await checkAuth();
+                if (!user) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Inject sidebar
+                document.getElementById('sidebar').innerHTML = createSidebar(user, window.layoutPage || '');
+
+                // Inject mobile header  
+                document.getElementById('mobileHeader').innerHTML = createMobileHeader(user);
+            })();
+    </script>
+</body>
+
+</html>
